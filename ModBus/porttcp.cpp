@@ -213,16 +213,9 @@ prvMBTCPGetFrame(  )
         return FALSE;
     }
 
-    /* Though this part is verbose, it doesn't work when data is recieved directly into aucTCPBuf. */
-    while (len = pConnectedSock->recv(&buf[total], MB_TCP_BUF_SIZE-total) ) {
-        total+=len;
-    }
-
-    if(total>0){
-        memcpy((char *)&aucTCPBuf[usTCPBufPos],buf,total);
-        usTCPBufPos+=total;
-        usTCPFrameBytesLeft-=total;
-        prvMBTCPGetFrame();
+    while (len = pConnectedSock->recv((char *)&aucTCPBuf[usTCPBufPos], MB_TCP_BUF_SIZE-usTCPBufPos) ) {
+        usTCPBufPos+=len;
+        usTCPFrameBytesLeft-=len;
     }
 
     /* If we have received the MBAP header we can analyze it and calculate
