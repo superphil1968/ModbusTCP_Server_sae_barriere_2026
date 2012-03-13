@@ -199,10 +199,6 @@ prvMBTCPGetFrame(  )
     BOOL            bOkay = TRUE;
     USHORT          usLength;
     int             iRes;
-    int i;
-    int total=0;
-    int len;
-    char buf[MB_TCP_BUF_SIZE];
     /* Make sure that we can safely process the next read request. If there
      * is an overflow drop the client.
      */
@@ -213,9 +209,9 @@ prvMBTCPGetFrame(  )
         return FALSE;
     }
 
-    while (len = pConnectedSock->recv((char *)&aucTCPBuf[usTCPBufPos], MB_TCP_BUF_SIZE-usTCPBufPos) ) {
-        usTCPBufPos+=len;
-        usTCPFrameBytesLeft-=len;
+    while (iRes = pConnectedSock->recv((char *)&aucTCPBuf[usTCPBufPos], MB_TCP_BUF_SIZE-usTCPBufPos) ) {
+        usTCPBufPos+=iRes;
+        usTCPFrameBytesLeft-=iRes;
     }
 
     /* If we have received the MBAP header we can analyze it and calculate
