@@ -127,13 +127,13 @@ int main() {
 #if MB_TCP_ENABLED == 1
     Net::poll();
 #endif
-/*
+
     if(tm.read()>.5)
     {
       led1=!led1; //Show that we are alive
       tm.start();
     }
-*/
+
     eStatus = eMBPoll(  );
             
     /* Here we simply count the number of poll cycles. */
@@ -249,11 +249,9 @@ eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNCoils, eMBRegis
 
             case MB_REG_WRITE:
                 // Write coils
-                if(iIntBitNum==0){
-                    usRegCoilBuf[iIntBufNum]=0;
-                }
-                ucTemp=(pucRegBuffer[iExtBufNum]>>iExtBitNum) & 1;
-                usRegCoilBuf[iIntBufNum]|=ucTemp<<iIntBitNum;
+				ucTemp=usRegCoilBuf[iIntBufNum]&(~(1<<iIntBitNum));
+				ucTemp|=((pucRegBuffer[iExtBufNum]>>iExtBitNum) & 1)<<iIntBitNum;
+				usRegCoilBuf[iIntBufNum]=ucTemp;
                 break;
             }
             iIntRegIndex++;
