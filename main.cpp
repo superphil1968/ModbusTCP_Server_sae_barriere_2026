@@ -27,6 +27,8 @@
 #include "mb.h"
 #include "mbport.h"
 #include "mbconfig.h"
+#include "C12832.h"
+#include "MFRC522.h"
 
 
 #if MB_TCP_ENABLED == 1
@@ -65,6 +67,14 @@ void EtherPinMonitorFunc(void)
 #define REG_DISC_BYTES REG_DISC_NREGS/8
 
 #define SLAVE_ID 0x0A
+
+ #define SPI_MOSI    p5
+#define SPI_MISO    p6
+#define SPI_SCLK    p7
+#define SPI_CS      p10
+#define MF_RESET    p9
+MFRC522    RfChip   (SPI_MOSI, SPI_MISO, SPI_SCLK, SPI_CS, MF_RESET);
+
 
 /* ----------------------- Static variables ---------------------------------*/
 static USHORT   usRegInputStart = REG_INPUT_START;
@@ -120,10 +130,41 @@ int main() {
   // Initialise some registers
   usRegInputBuf[1] = 0x1234;
   usRegInputBuf[2] = 0x5678;
-  usRegInputBuf[3] = 0x9abc;        
+  usRegInputBuf[3] = 0x9abc;     
+
+  usRegHoldingBuf[0]=0x0123;
+  usRegHoldingBuf[1]=0x4567;
+  usRegHoldingBuf[2]=0x89AB;   
+
+   RfChip.PCD_Init();
 
   while(true)
-  {
+  { /*   ---------------------code todo ---------------------- */
+ if (  RfChip.PICC_IsNewCardPresent())
+    {
+     //wait_ms(500);
+      if (  RfChip.PICC_ReadCardSerial())
+        {
+         // wait_ms(500);
+         printf("Card UID: ");
+        usRegHoldingBuf[4]= (USHORT) RfChip.uid.uidByte[0]<<8 | (USHORT)RfChip.uid.uidByte[1]  ;
+        usRegHoldingBuf[5]= (USHORT) RfChip.uid.uidByte[2]<<8 | (USHORT)RfChip.uid.uidByte[3]  ;
+
+
+         for (uint8_t i = 0; i < RfChip.uid.size; i++)
+         {
+       printf(" %02X", RfChip.uid.uidByte[i]);
+         }
+        printf("\n\r");
+       
+    } else { usRegHoldingBuf[4]=0x0000;
+            usRegHoldingBuf[5]=0x0000;} // carte n est pas lisible 
+    } else {usRegHoldingBuf[4]=0x0000;
+            usRegHoldingBuf[5]=0x0000;} // pas de carte presente
+
+
+
+
 #if MB_TCP_ENABLED == 1
     Net::poll();
 #endif
